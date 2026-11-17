@@ -83,6 +83,7 @@
       PHONE: "010-4445-6432",                                   // 중개사 휴대폰 번호
       KAKAO_OPENCHAT_URL: "https://open.kakao.com/o/sPQtqVTi",   // 오픈카카오톡 1:1 채팅 링크
       INSTAGRAM_DM_URL: "https://www.instagram.com/_u/bu_room/", // 인스타 앱의 @bu_room 프로필로 바로 열기 (프로필에서 '메시지')
+      INSTAGRAM_WEB_URL: "https://www.instagram.com/bu_room/",      // 컴퓨터(앱 없음)에서 열 일반 프로필 주소
       LISTING_SITE_URL: "https://skylee-lang.github.io/wa-bang/" // 와방 매물 보는 사이트 주소
     };
   </script>
@@ -633,6 +634,8 @@
       const isIOS = IS_IOS;
       // 아이폰: target="_blank"로 새 탭을 열면 앱 전환 후 빈(흰색) 탭이 남아서 현재 탭에서 바로 이동
       const linkAttrs = isIOS ? "" : 'target="_blank" rel="noopener noreferrer"';
+      const isMobile = isIOS || /Android/i.test(navigator.userAgent);
+      const instaHref = isMobile ? CONFIG.INSTAGRAM_DM_URL : CONFIG.INSTAGRAM_WEB_URL;
       const smsSeparator = isIOS ? "&" : "?";
       const smsHref = `sms:${phone}${smsSeparator}body=${encodeURIComponent(summaryText)}`;
 
@@ -663,7 +666,7 @@
               <span class="break-keep">💬 오픈카카오톡으로 문의 보내기</span>
             </a>
 
-            <a href="${CONFIG.INSTAGRAM_DM_URL}" ${linkAttrs}
+            <a href="${instaHref}" ${linkAttrs}
               onclick="handleChannelLinkClick('insta')"
               class="w-full px-3 py-3.5 leading-snug text-center rounded-2xl bg-gradient-to-r from-purple-600 via-pink-500 to-amber-500 hover:brightness-95 active:scale-[0.99] text-white font-extrabold text-sm shadow-sm flex items-center justify-center gap-2 transition">
               <i class="ph-fill ph-instagram-logo text-lg shrink-0"></i>
