@@ -616,6 +616,16 @@
       const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
       // 아이폰: target="_blank"로 새 탭을 열면 앱 전환 후 빈(흰색) 탭이 남아서 현재 탭에서 바로 이동
       const linkAttrs = isIOS ? "" : 'target="_blank" rel="noopener noreferrer"';
+      const ua = navigator.userAgent;
+      const inKakao = /KAKAOTALK/i.test(ua);
+      const inApp = inKakao || /Instagram|FBAN|FBAV|NAVER|Line\/|DaumApps/i.test(ua);
+      const openSafariHref = inKakao ? "kakaotalk://web/openExternal?url=" + encodeURIComponent(location.href.split("#")[0]) : "";
+      const inAppNotice = inApp ? `
+          <div class="rounded-2xl bg-amber-50 border border-amber-200 p-3 text-[11px] leading-snug text-amber-800 break-keep">
+            <b>⚠️ 지금 카톡/인스타 안에서 열려 있어요.</b><br/>
+            이 화면에서는 앱 이동과 복사가 막혀 흰 화면이 나올 수 있어요. ${inKakao ? "아래 버튼으로 기본 브라우저에서 다시 열어주세요." : "화면 오른쪽 아래(또는 위)의 <b>⋯ → 'Safari로 열기'</b>를 눌러 다시 열어주세요."}
+            ${inKakao ? `<a href="${openSafariHref}" class="mt-2 block text-center py-2 rounded-xl bg-amber-500 text-white font-extrabold text-xs">기본 브라우저로 다시 열기</a>` : ""}
+          </div>` : "";
       const smsSeparator = isIOS ? "&" : "?";
       const smsHref = `sms:${phone}${smsSeparator}body=${encodeURIComponent(summaryText)}`;
 
@@ -637,23 +647,32 @@
         <div class="p-3 min-[380px]:p-4 space-y-3">
           <pre id="summaryPre" class="text-xs text-slate-700 bg-sky-50/80 p-3.5 rounded-2xl border border-sky-100 whitespace-pre-wrap break-words font-sans leading-relaxed select-all">${escapeHtml(summaryText)}</pre>
 
+          ${inAppNotice}
           <div class="space-y-2.5 pt-1">
-            <!-- 1. 오픈카카오톡으로 전송 (인앱 브라우저 차단 방지를 위해 a태그 + onclick 동시 적용) -->
+            <!-- 1단계: 복사 (앱 이동과 분리해야 아이폰에서도 확실히 복사됨) -->
+            <button type="button" id="copyBtn" onclick="copyInquiry()"
+              class="w-full px-3 py-3.5 leading-snug text-center rounded-2xl bg-[#0284C7] hover:bg-sky-700 active:scale-[0.99] text-white font-extrabold text-sm shadow-sm flex items-center justify-center gap-2 transition">
+              <i class="ph-bold ph-copy text-lg shrink-0"></i>
+              <span id="copyBtnText" class="break-keep">① 문의 내용 복사하기</span>
+            </button>
+
+            <p class="text-[11px] font-bold text-slate-500 text-center pt-1">② 복사 후, 보낼 곳을 눌러 붙여넣기 해주세요</p>
+
+            <!-- 2단계: 앱 열기 -->
             <a href="${CONFIG.KAKAO_OPENCHAT_URL}" ${linkAttrs}
               onclick="handleChannelLinkClick('kakao')"
               class="w-full px-3 py-3.5 leading-snug text-center rounded-2xl bg-[#FEE500] hover:brightness-95 active:scale-[0.99] text-[#191919] font-extrabold text-sm shadow-sm flex items-center justify-center gap-2 transition">
-              <i class="ph-fill ph-chat-teardrop-text text-lg"></i>
-              <span class="break-keep">💬 오픈카카오톡으로 문의 보내기</span>
+              <i class="ph-fill ph-chat-teardrop-text text-lg shrink-0"></i>
+              <span class="break-keep">💬 오픈카카오톡 열기</span>
             </a>
 
-            <!-- 2. 인스타그램 DM으로 전송 -->
             <a href="${CONFIG.INSTAGRAM_DM_URL}" ${linkAttrs}
               onclick="handleChannelLinkClick('insta')"
               class="w-full px-3 py-3.5 leading-snug text-center rounded-2xl bg-gradient-to-r from-purple-600 via-pink-500 to-amber-500 hover:brightness-95 active:scale-[0.99] text-white font-extrabold text-sm shadow-sm flex items-center justify-center gap-2 transition">
-              <i class="ph-fill ph-instagram-logo text-lg"></i>
-              <span class="break-keep">📩 인스타그램으로 문의 보내기</span>
+              <i class="ph-fill ph-instagram-logo text-lg shrink-0"></i>
+              <span class="break-keep">📩 인스타그램 열기</span>
             </a>
-            <p class="text-[11px] text-slate-400 text-center leading-snug break-keep">누르면 문의 내용이 자동 복사돼요.<br/>인스타그램은 프로필이 열리면 <b>'메시지'</b> 버튼을 눌러 붙여넣어 주세요.</p>
+            <p class="text-[11px] text-slate-400 text-center leading-snug break-keep">인스타그램은 프로필이 열리면 <b>'메시지'</b> 버튼을 눌러 붙여넣어 주세요.<br/>앱이 안 열리면 ①로 복사한 뒤 카카오톡·인스타 앱을 직접 열어 붙여넣어도 돼요.</p>
 
             <!-- 3. 보조 버튼: 내용만 복사 / 문자 전송 -->
             <div class="grid grid-cols-2 gap-2 pt-0.5">
@@ -706,7 +725,10 @@
         ta.setSelectionRange(0, text.length);
         const ok = document.execCommand("copy");
         document.body.removeChild(ta);
-        if (ok) return true;
+        if (ok) {
+          if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).catch(() => {});
+          return true;
+        }
       } catch (err) {}
 
       if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -716,26 +738,22 @@
       return false;
     }
 
-    function handleChannelLinkClick(channel) {
+    // 1단계: 문의 내용 복사 (앱 이동 없이 복사만 → 아이폰에서도 확실)
+    function copyInquiry() {
       const ok = copyTextToClipboard(buildFormattedSummaryText());
-      const isInsta = channel === "insta";
-      const channelName = isInsta ? "인스타그램" : "오픈카카오톡";
+      const btn = document.getElementById("copyBtn");
+      const txt = document.getElementById("copyBtnText");
+      if (ok && btn && txt) {
+        txt.textContent = "✓ 복사 완료! 아래에서 보낼 곳을 눌러주세요";
+        btn.classList.remove("bg-[#0284C7]", "hover:bg-sky-700");
+        btn.classList.add("bg-emerald-600", "hover:bg-emerald-700");
+      }
+      showToast(ok ? "문의 내용이 복사되었습니다! 이제 카톡/인스타를 열어 붙여넣어 주세요." : "위 요약 박스를 길게 눌러 복사해 주세요.");
+    }
 
-      showToast(
-        ok
-          ? (isInsta
-              ? "문의 내용이 복사되었습니다! 프로필에서 '메시지'를 눌러 붙여넣기 해주세요."
-              : `문의 내용이 복사되었습니다! ${channelName}에 붙여넣기 해주세요.`)
-          : "요약 박스를 길게 눌러 복사한 뒤 붙여넣기 해주세요."
-      );
-
-      let desc = null;
-      if (!ok) desc = "위 요약 박스를 길게 눌러 직접 복사한 뒤, 채팅창에 붙여넣어 전송해 주세요.";
-      else if (isInsta) desc = "인스타그램 프로필이 열리면 '메시지' 버튼을 눌러 DM 창에 붙여넣기(길게 누르기 → 붙여넣기) 후 전송해 주세요.";
-
-      setTimeout(() => {
-        showAfterSendModal(ok ? "문의 내용이 복사되었습니다!" : "채팅창으로 이동합니다!", desc);
-      }, 300);
+    function handleChannelLinkClick(channel) {
+      // 이미 ①에서 복사했더라도, 누르는 순간 한 번 더 복사 시도 (실패해도 이동은 그대로 진행)
+      copyTextToClipboard(buildFormattedSummaryText());
     }
 
     function copyOnlyAndAskNext() {
