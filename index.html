@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="robots" content="noindex, nofollow" />
   <title>와방 | 공인중개사 이하늘 - 자동 매물 접수 챗봇</title>
 
@@ -36,6 +36,16 @@
   </script>
 
   <style>
+    html {
+      -webkit-text-size-adjust: 100%; text-size-adjust: 100%;
+      font-size: clamp(14px, 3.9vw, 16px); /* 폰 폭에 맞춰 전체 크기 자동 조절 */
+    }
+    /* 아이폰은 입력창 글자가 16px 미만이면 화면이 확대되어 잘려 보이므로 고정 */
+    #userInput { font-size: 16px !important; }
+    /* 화면 높이: 구형 브라우저(100vh) → dvh → JS로 실제 보이는 높이(키보드 포함)로 갱신 */
+    :root { --app-h: 100vh; }
+    @supports (height: 100dvh) { :root { --app-h: 100dvh; } }
+    .app-h { height: var(--app-h); }
     body {
       background-color: #E2EEF8;
       color: #0F172A;
@@ -64,56 +74,53 @@
     .typing-dot:nth-child(2) { animation-delay: -0.16s; }
   </style>
 </head>
-<body class="h-[100dvh] flex justify-center overflow-hidden">
+<body class="app-h flex justify-center overflow-hidden">
 
   <!-- ================= 설정 영역 ================= -->
   <script>
     const CONFIG = {
       PHONE: "010-4445-6432",                                   // 중개사 휴대폰 번호
       KAKAO_OPENCHAT_URL: "https://open.kakao.com/o/sPQtqVTi",   // 오픈카카오톡 1:1 채팅 링크
-      INSTAGRAM_DM_URL: "https://ig.me/m/bu_room", // 인스타그램 DM 바로 열기 (@bu_room)
+      INSTAGRAM_DM_URL: "https://www.instagram.com/bu_room/", // 인스타그램 프로필 (프로필에서 '메시지' 버튼으로 DM)
       LISTING_SITE_URL: "https://skylee-lang.github.io/wa-bang/" // 와방 매물 보는 사이트 주소
     };
   </script>
   <!-- ============================================== -->
 
   <!-- 모바일 퍼스트 중앙 컨테이너 -->
-  <div class="w-full max-w-md h-[100dvh] bg-[#F4FAFF] shadow-2xl border-x border-sky-100 flex flex-col relative overflow-hidden">
+  <div class="w-full max-w-md app-h bg-[#F4FAFF] shadow-2xl border-x border-sky-100 flex flex-col relative overflow-hidden">
 
     <!-- 상단 고정 헤더 -->
-    <header class="shrink-0 bg-white/95 backdrop-blur-md border-b border-sky-100 z-20">
-      <div class="px-4 h-16 flex items-center justify-between gap-2">
-        <div class="flex items-center gap-2.5 min-w-0">
+    <header class="shrink-0 bg-white/95 backdrop-blur-md border-b border-sky-100 z-20" style="padding-top: env(safe-area-inset-top);">
+      <div class="px-3 min-[380px]:px-4 h-16 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0 flex-1">
           <div class="w-10 h-10 rounded-2xl bg-[#0284C7] flex items-center justify-center shrink-0 shadow-sm">
             <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
               <path d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z" />
               <path d="M12 5.432l8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z" />
             </svg>
           </div>
-          <div class="leading-tight truncate">
-            <div class="flex items-center gap-1.5">
-              <span class="text-base font-extrabold text-slate-900">와방</span>
-              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>응답가능
-              </span>
+          <div class="leading-tight min-w-0 flex-1">
+            <div class="flex items-center gap-1.5 min-w-0">
+              <span class="text-base font-extrabold text-slate-900 shrink-0">와방</span>
             </div>
-            <div class="text-[11px] font-medium text-sky-700 truncate">공인중개사 이하늘 · 자동 매물 접수 챗봇</div>
+            <div class="text-[11px] font-medium text-sky-700 truncate">공인중개사 이하늘 · 매물 접수 챗봇</div>
           </div>
         </div>
 
-        <div class="flex items-center gap-1.5 shrink-0">
+        <div class="flex items-center gap-1 shrink-0">
           <button type="button" onclick="restartChat()" title="처음부터 다시하기"
             class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white hover:bg-sky-50 text-sky-800 border border-sky-300 text-[11px] font-bold shadow-sm transition">
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 12a9 9 0 1 0 3-6.7" />
               <path d="M3 4v5h5" />
             </svg>
-            <span>초기화</span>
+            <span class="max-[359px]:hidden">초기화</span>
           </button>
           <a href="https://skylee-lang.github.io/wa-bang/"
             class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#0284C7] hover:bg-sky-700 text-white text-[11px] font-bold shadow-sm transition">
             <i class="ph-fill ph-house-line text-xs"></i>
-            <span>매물보기</span>
+            <span class="max-[359px]:hidden">매물보기</span>
           </a>
         </div>
       </div>
@@ -136,9 +143,9 @@
     </main>
 
     <!-- 하단 빠른 선택 칩 & 텍스트 입력 바 -->
-    <footer id="inputArea" class="shrink-0 bg-white border-t border-sky-100 z-20">
+    <footer id="inputArea" class="shrink-0 bg-white border-t border-sky-100 z-20" style="padding-bottom: env(safe-area-inset-bottom);">
       <div class="px-4 py-3 space-y-2.5">
-        <div id="quickChipsContainer" class="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto no-scrollbar"></div>
+        <div id="quickChipsContainer" class="flex flex-wrap gap-1.5 max-h-[30vh] overflow-y-auto no-scrollbar"></div>
 
         <div id="multiSelectBar" class="hidden flex items-center justify-between bg-sky-50 px-3 py-2 rounded-xl border border-sky-200">
           <span id="multiSelectCount" class="text-xs font-bold text-[#0284C7]">0개 선택됨</span>
@@ -154,7 +161,7 @@
             <i class="ph-bold ph-arrow-u-up-left text-base"></i>
           </button>
           <input id="userInput" type="text" autocomplete="off" placeholder="답변을 입력하거나 위 버튼을 눌러주세요..."
-            class="flex-1 px-4 py-2.5 rounded-2xl bg-sky-50/80 border border-sky-200 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#0284C7] focus:bg-white transition" />
+            class="flex-1 min-w-0 px-4 py-2.5 rounded-2xl bg-sky-50/80 border border-sky-200 text-base text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#0284C7] focus:bg-white transition" />
           <button type="submit"
             class="shrink-0 w-10 h-10 rounded-2xl bg-[#0284C7] hover:bg-sky-700 active:scale-95 text-white flex items-center justify-center shadow-sm transition">
             <i class="ph-fill ph-paper-plane-right text-base"></i>
@@ -164,14 +171,14 @@
     </footer>
 
     <!-- 상단 토스트 알림 메시지 -->
-    <div id="toast" class="absolute top-20 left-1/2 -translate-x-1/2 z-[60] hidden px-4 py-2.5 rounded-full bg-slate-900/95 text-white text-xs font-bold shadow-lg flex items-center gap-1.5 w-max max-w-[90%]">
+    <div id="toast" class="absolute top-24 left-1/2 -translate-x-1/2 z-[60] hidden px-4 py-2.5 rounded-2xl bg-slate-900/95 text-white text-xs font-bold shadow-lg flex items-center gap-1.5 w-max max-w-[90%]">
       <i class="ph-fill ph-check-circle text-emerald-400 text-base shrink-0"></i>
-      <span id="toastText" class="truncate">복사되었습니다!</span>
+      <span id="toastText" class="leading-snug">복사되었습니다!</span>
     </div>
 
     <!-- 전송 후 후속 행동 선택 모달 -->
     <div id="afterSendModal" class="absolute inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-      <div class="bg-white rounded-3xl max-w-sm w-full p-6 space-y-5 shadow-2xl msg-anim border border-sky-100">
+      <div class="bg-white rounded-3xl max-w-sm w-full max-h-full overflow-y-auto p-5 space-y-4 shadow-2xl msg-anim border border-sky-100">
         <div class="text-center space-y-2">
           <div class="w-12 h-12 rounded-2xl bg-sky-50 text-[#0284C7] flex items-center justify-center mx-auto text-2xl shadow-sm">
             <i class="ph-fill ph-paper-plane-tilt"></i>
@@ -291,7 +298,21 @@
     let isCompleted = false;
     let editReturn = false;
 
+    // 폰마다 다른 화면 높이/키보드 높이에 맞춰 앱 높이를 실시간 조정
+    function fitViewport() {
+      const vv = window.visualViewport;
+      const h = Math.round(vv ? vv.height : window.innerHeight);
+      document.documentElement.style.setProperty("--app-h", h + "px");
+      window.scrollTo(0, 0);
+    }
+    window.addEventListener("resize", fitViewport);
+    window.addEventListener("orientationchange", () => setTimeout(fitViewport, 200));
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", () => { fitViewport(); scrollToBottom(); });
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
+      fitViewport();
       startGreeting();
     });
 
@@ -359,9 +380,9 @@
             <div class="w-8 h-8 rounded-2xl bg-[#0284C7] text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5 text-sm">
               <i class="ph-fill ph-paw-print"></i>
             </div>
-            <div class="max-w-[84%] space-y-1">
+            <div class="max-w-[calc(100%-2.75rem)] min-w-0 space-y-1">
               <div class="text-[11px] font-bold text-slate-500 ml-1">와방 매니저</div>
-              <div class="bg-white border border-sky-100 text-slate-800 text-sm px-4 py-3 rounded-2xl rounded-tl-md shadow-sm leading-relaxed whitespace-pre-line">${htmlContent}</div>
+              <div class="bg-white border border-sky-100 text-slate-800 text-sm px-4 py-3 rounded-2xl rounded-tl-md shadow-sm leading-relaxed whitespace-pre-line break-words">${htmlContent}</div>
             </div>
           `;
           container.appendChild(msgEl);
@@ -376,8 +397,8 @@
       const msgEl = document.createElement("div");
       msgEl.className = "flex justify-end msg-anim";
       msgEl.innerHTML = `
-        <div class="max-w-[82%] flex flex-col items-end gap-1">
-          <div class="bg-[#0284C7] text-white text-sm font-medium px-4 py-2.5 rounded-2xl rounded-tr-md shadow-sm leading-relaxed break-keep">${escapeHtml(text)}</div>
+        <div class="max-w-[88%] min-w-0 flex flex-col items-end gap-1">
+          <div class="bg-[#0284C7] text-white text-sm font-medium px-4 py-2.5 rounded-2xl rounded-tr-md shadow-sm leading-relaxed break-keep break-words">${escapeHtml(text)}</div>
           ${stepIdxToEdit !== null ? `<button type="button" onclick="editFromStep(${stepIdxToEdit})" class="text-[11px] text-slate-400 hover:text-[#0284C7] underline pr-1">수정하기</button>` : ""}
         </div>
       `;
@@ -461,7 +482,7 @@
         multiBar.classList.add("hidden");
         wrap.innerHTML = chips.map(chip => `
           <button type="button" onclick="handleChipClick('${chip.replace(/'/g, "\\'")}')"
-            class="px-3.5 py-2 rounded-full bg-sky-50 hover:bg-[#0284C7] text-[#0284C7] hover:text-white border border-sky-200 text-xs font-bold transition shrink-0">
+            class="px-3.5 py-2 rounded-full bg-sky-50 hover:bg-[#0284C7] text-[#0284C7] hover:text-white border border-sky-200 text-xs font-bold transition max-w-full text-left leading-snug">
             ${chip}
           </button>
         `).join("");
@@ -472,7 +493,7 @@
           const active = selectedMultiOptions.includes(chip);
           return `
             <button type="button" onclick="toggleMultiChip('${chip.replace(/'/g, "\\'")}')"
-              class="px-3.5 py-2 rounded-full text-xs font-bold border transition shrink-0 ${
+              class="px-3.5 py-2 rounded-full text-xs font-bold border transition max-w-full text-left leading-snug ${
                 active
                   ? "bg-[#0284C7] text-white border-[#0284C7] shadow-sm"
                   : "bg-sky-50 text-[#0284C7] border-sky-200 hover:bg-sky-100"
@@ -586,13 +607,16 @@
       const thanksEl = await appendBotMessage(
         again
           ? "수정하신 내용으로 다시 정리했어요! 아래 버튼으로 문의를 보내주세요. ✅"
-          : "감사합니다! 알려주신 희망 조건이 모두 정리되었습니다. 🎉\n\n아래 <b>오픈카카오톡</b> 또는 <b>인스타그램 DM</b> 버튼을 누르시면 문의 내용이 <b>자동으로 복사</b>되면서 채팅창이 열립니다. 채팅창에 <b>붙여넣기</b>만 해서 보내주세요!",
+          : "감사합니다! 알려주신 희망 조건이 모두 정리되었습니다. 🎉\n\n아래 <b>오픈카카오톡</b> 또는 <b>인스타그램 DM</b> 버튼을 누르시면 문의 내용이 <b>자동으로 복사</b>되면서 연결됩니다. 카카오톡은 채팅창에, 인스타그램은 프로필의 <b>'메시지'</b> 버튼을 누른 뒤 <b>붙여넣기</b>만 해서 보내주세요!",
         delay
       );
 
       const summaryText = buildFormattedSummaryText();
       const phone = (CONFIG.PHONE || "").trim();
-      const smsSeparator = /iPhone|iPad|iPod/i.test(navigator.userAgent) ? "&" : "?";
+      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      // 아이폰: target="_blank"로 새 탭을 열면 앱 전환 후 빈(흰색) 탭이 남아서 현재 탭에서 바로 이동
+      const linkAttrs = isIOS ? "" : 'target="_blank" rel="noopener noreferrer"';
+      const smsSeparator = isIOS ? "&" : "?";
       const smsHref = `sms:${phone}${smsSeparator}body=${encodeURIComponent(summaryText)}`;
 
       const container = document.getElementById("chatContainer");
@@ -600,47 +624,48 @@
       cardEl.id = "summaryCard";
       cardEl.className = "msg-anim bg-white rounded-3xl border border-sky-200 shadow-md overflow-hidden";
       cardEl.innerHTML = `
-        <div class="bg-gradient-to-r from-[#0284C7] to-sky-500 px-5 py-3.5 text-white flex items-center justify-between">
-          <div class="flex items-center gap-2 font-extrabold text-sm">
-            <i class="ph-fill ph-clipboard-text text-lg"></i>
-            <span>접수된 맞춤 매물 희망 조건</span>
+        <div class="bg-gradient-to-r from-[#0284C7] to-sky-500 px-4 py-3.5 text-white flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2 font-extrabold text-sm min-w-0">
+            <i class="ph-fill ph-clipboard-text text-lg shrink-0"></i>
+            <span class="leading-snug break-keep">접수된 희망 조건</span>
           </div>
-          <button type="button" onclick="restartChat()" class="text-[11px] bg-white/20 hover:bg-white/30 px-2.5 py-1 rounded-full font-bold transition">
+          <button type="button" onclick="restartChat()" class="text-[11px] bg-white/20 hover:bg-white/30 px-2.5 py-1 rounded-full font-bold transition whitespace-nowrap shrink-0">
             처음부터 다시
           </button>
         </div>
 
-        <div class="p-4 sm:p-5 space-y-3">
-          <pre id="summaryPre" class="text-xs text-slate-700 bg-sky-50/80 p-3.5 rounded-2xl border border-sky-100 whitespace-pre-wrap font-sans leading-relaxed select-all">${escapeHtml(summaryText)}</pre>
+        <div class="p-3 min-[380px]:p-4 space-y-3">
+          <pre id="summaryPre" class="text-xs text-slate-700 bg-sky-50/80 p-3.5 rounded-2xl border border-sky-100 whitespace-pre-wrap break-words font-sans leading-relaxed select-all">${escapeHtml(summaryText)}</pre>
 
           <div class="space-y-2.5 pt-1">
             <!-- 1. 오픈카카오톡으로 전송 (인앱 브라우저 차단 방지를 위해 a태그 + onclick 동시 적용) -->
-            <a href="${CONFIG.KAKAO_OPENCHAT_URL}" target="_blank" rel="noopener noreferrer"
+            <a href="${CONFIG.KAKAO_OPENCHAT_URL}" ${linkAttrs}
               onclick="handleChannelLinkClick('kakao')"
-              class="w-full py-3.5 rounded-2xl bg-[#FEE500] hover:brightness-95 active:scale-[0.99] text-[#191919] font-extrabold text-sm shadow-sm flex items-center justify-center gap-2 transition">
+              class="w-full px-3 py-3.5 leading-snug text-center rounded-2xl bg-[#FEE500] hover:brightness-95 active:scale-[0.99] text-[#191919] font-extrabold text-sm shadow-sm flex items-center justify-center gap-2 transition">
               <i class="ph-fill ph-chat-teardrop-text text-lg"></i>
-              <span>💬 오픈카카오톡으로 문의 보내기 (자동복사)</span>
+              <span class="break-keep">💬 오픈카카오톡으로 문의 보내기</span>
             </a>
 
             <!-- 2. 인스타그램 DM으로 전송 -->
-            <a href="${CONFIG.INSTAGRAM_DM_URL}" target="_blank" rel="noopener noreferrer"
+            <a href="${CONFIG.INSTAGRAM_DM_URL}" ${linkAttrs}
               onclick="handleChannelLinkClick('insta')"
-              class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-500 to-amber-500 hover:brightness-95 active:scale-[0.99] text-white font-extrabold text-sm shadow-sm flex items-center justify-center gap-2 transition">
+              class="w-full px-3 py-3.5 leading-snug text-center rounded-2xl bg-gradient-to-r from-purple-600 via-pink-500 to-amber-500 hover:brightness-95 active:scale-[0.99] text-white font-extrabold text-sm shadow-sm flex items-center justify-center gap-2 transition">
               <i class="ph-fill ph-instagram-logo text-lg"></i>
-              <span>📩 인스타그램 DM으로 문의 보내기 (자동복사)</span>
+              <span class="break-keep">📩 인스타그램으로 문의 보내기</span>
             </a>
+            <p class="text-[11px] text-slate-400 text-center leading-snug break-keep">누르면 문의 내용이 자동 복사돼요.<br/>인스타그램은 프로필이 열리면 <b>'메시지'</b> 버튼을 눌러 붙여넣어 주세요.</p>
 
             <!-- 3. 보조 버튼: 내용만 복사 / 문자 전송 -->
             <div class="grid grid-cols-2 gap-2 pt-0.5">
               <button type="button" onclick="copyOnlyAndAskNext()"
-                class="py-3 rounded-2xl bg-sky-50 hover:bg-sky-100 text-[#0284C7] border border-sky-200 font-bold text-xs flex items-center justify-center gap-1.5 transition">
-                <i class="ph-bold ph-copy text-sm"></i>
+                class="px-2 py-3 rounded-2xl bg-sky-50 hover:bg-sky-100 text-[#0284C7] border border-sky-200 font-bold text-xs leading-tight flex items-center justify-center gap-1.5 transition">
+                <i class="ph-bold ph-copy text-sm shrink-0"></i>
                 <span>내용만 복사하기</span>
               </button>
 
               <a href="${smsHref}" onclick="setTimeout(() => showAfterSendModal('문자 앱으로 연결되었습니다!', '문자 앱에서 내용을 확인하고 전송해 주세요.'), 400)"
-                class="py-3 rounded-2xl bg-sky-50 hover:bg-sky-100 text-[#0284C7] border border-sky-200 font-bold text-xs flex items-center justify-center gap-1.5 transition">
-                <i class="ph-bold ph-chat-circle-dots text-sm"></i>
+                class="px-2 py-3 rounded-2xl bg-sky-50 hover:bg-sky-100 text-[#0284C7] border border-sky-200 font-bold text-xs leading-tight flex items-center justify-center gap-1.5 transition">
+                <i class="ph-bold ph-chat-circle-dots text-sm shrink-0"></i>
                 <span>문자(SMS) 전송</span>
               </a>
             </div>
@@ -693,19 +718,23 @@
 
     function handleChannelLinkClick(channel) {
       const ok = copyTextToClipboard(buildFormattedSummaryText());
-      const channelName = channel === "kakao" ? "오픈카카오톡" : "인스타그램 DM";
+      const isInsta = channel === "insta";
+      const channelName = isInsta ? "인스타그램" : "오픈카카오톡";
 
       showToast(
         ok
-          ? `문의 내용이 복사되었습니다! ${channelName}에 붙여넣기 해주세요.`
+          ? (isInsta
+              ? "문의 내용이 복사되었습니다! 프로필에서 '메시지'를 눌러 붙여넣기 해주세요."
+              : `문의 내용이 복사되었습니다! ${channelName}에 붙여넣기 해주세요.`)
           : "요약 박스를 길게 눌러 복사한 뒤 붙여넣기 해주세요."
       );
 
+      let desc = null;
+      if (!ok) desc = "위 요약 박스를 길게 눌러 직접 복사한 뒤, 채팅창에 붙여넣어 전송해 주세요.";
+      else if (isInsta) desc = "인스타그램 프로필이 열리면 '메시지' 버튼을 눌러 DM 창에 붙여넣기(길게 누르기 → 붙여넣기) 후 전송해 주세요.";
+
       setTimeout(() => {
-        showAfterSendModal(
-          ok ? "문의 내용이 복사되었습니다!" : "채팅창으로 이동합니다!",
-          ok ? null : "위 요약 박스를 길게 눌러 직접 복사한 뒤, 채팅창에 붙여넣어 전송해 주세요."
-        );
+        showAfterSendModal(ok ? "문의 내용이 복사되었습니다!" : "채팅창으로 이동합니다!", desc);
       }, 300);
     }
 
